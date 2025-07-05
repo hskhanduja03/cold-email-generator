@@ -1,36 +1,43 @@
-import streamlit as st
+from flask import Flask, request, jsonify
 from langchain_community.document_loaders import WebBaseLoader
 
 from chains import Chain
 from portfolio import Portfolio
 from utils import clean_text
 
+app = Flask(__name__)
+chain = Chain()
+portfolio = Portfolio()
 
-def create_streamlit_app(llm, portfolio, clean_text):
-    st.title("📧 Cold Mail Generator")
-    url_input = st.text_input("Enter a URL:", value="")
-    submit_button = st.button("Submit")
+@app.route("/", methods=["GET"])
+def home():
+    return "Cold Email Generator API is up!"
 
-    if submit_button:
-        try:
-            loader = WebBaseLoader([url_input])
-            data = clean_text(loader.load().pop().page_content)
-            portfolio.load_portfolio()
-            jobs = llm.extract_jobs(data)
-            for job in jobs:
-                skills = job.get('skills', [])
-                links = portfolio.query_links(skills)
-                email = llm.write_mail(job, links)
-                st.code(email, language='markdown')
-        except Exception as e:
-            st.error(f"An Error Occurred: {e}")
+@app.route("/generate", methods=["POST"])
+def generate():
+    try:
+        data = request.get_json()
+        url = data.get("url", "")
 
+        loader = WebBaseLoader([url])
+        page_content = clean_text(loader.load().pop().page_content)
+        portfolio.load_portfolio()
+        jobs = chain.extract_jobs(page_content)
+
+        results = []
+        for job in jobs:
+            skills = job.get("skills", [])
+            links = portfolio.query_links(skills)
+            email = chain.write_mail(job, links)
+            results.append({
+                "job": job,
+                "email": email
+            })
+
+        return jsonify(results)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    print("✅ Streamlit app is starting...")
-    chain = Chain()
-    portfolio = Portfolio()
-    st.set_page_config(layout="wide", page_title="Cold Email Generator", page_icon="📧")
-    create_streamlit_app(chain, portfolio, clean_text)
-
-
+    app.run(debug=True)
