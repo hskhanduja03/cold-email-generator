@@ -104,6 +104,7 @@ jupyterlab-widgets
 jupyterlab_pygments
 jupyterlab_server
 keras
+sentence-transformers
 kiwisolver
 kubernetes
 langchain
