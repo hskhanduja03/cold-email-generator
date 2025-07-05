@@ -108,7 +108,9 @@ kiwisolver
 kubernetes
 langchain
 langchain-community
+langchain-huggingface
 langchain-core
+qdrant-client
 langchain-groq
 langchain-text-splitters
 langsmith
