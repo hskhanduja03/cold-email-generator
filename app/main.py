@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from langchain_community.document_loaders import WebBaseLoader
 
-from chains import Chain
-from portfolio import Portfolio
-from utils import clean_text
+from app.chains import Chain
+from app.portfolio import Portfolio
+from app.utils import clean_text
 
 app = Flask(__name__)
 chain = Chain()
